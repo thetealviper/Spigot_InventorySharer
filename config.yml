@@ -1,0 +1,21 @@
+##########################################################
+#                   EnderBank Config                     #
+##########################################################
+
+Default_Page_Price: 10
+#This is how much the first bank page will cost
+
+Page_Price_Multiplier: 1
+#This is how much the bank page cost will be multiplied
+#by for every additional page.
+
+Page_Price_Addition: 0
+#This is how much the bank page cost will be increased
+#by for every additional page.
+
+##########################################################
+#                        Version                         #
+##########################################################
+
+VERSION: 1
+#Do not touch this. No touchy.
