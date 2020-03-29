@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -52,7 +53,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 		Bukkit.getServer().getScheduler().cancelTasks(this);
 		
 		//	Register this plugin
-		EnableShit.handleOnEnable(this, this, "-1");
+		EnableShit.handleOnEnable(this, this, "73548");
 		plugin = this;
 
 		//Setup modules
@@ -174,7 +175,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			if(e.getSlot() >= bank.itemIdentifiers.size()) {
 				e.setCancelled(true);
 			}
-		}else if(e.getSlot() != -1 && e.getClickedInventory() != null && e.getView().getTitle().contains("'s Bank [Pg. ")) {
+		}else if(e.getSlot() != -1 && e.getClickedInventory() != null && e.getClickedInventory().equals(e.getView().getTopInventory())/**e.getView().getTitle().contains("'s Bank [Pg. ")**/) {
 			if(e.getSlot() == 7 || e.getSlot() == 16 || e.getSlot() == 25 || e.getSlot() == 26 || e.getSlot() == 34 || e.getSlot() == 43 || e.getSlot() == 52) {
 				e.setCancelled(true);
 			}else if(e.getSlot() == 8) { //next page
@@ -339,9 +340,14 @@ public class EnderBank extends JavaPlugin implements Listener {
 		if(handler.equals("banksearch")) {
 			queue.remove(queue.size() - 1);
 			e.setCancelled(true);
-			String search = e.getMessage();
-			BankStorage bank = BankStorage.searchDatabase.get(p);
-			bank.openSearch(search, p);
+			Block b = p.getTargetBlock(null, 10);
+			if(b.getType().equals(Material.ENDER_CHEST)) {
+				String search = e.getMessage();
+				BankStorage bank = BankStorage.searchDatabase.get(p);
+				bank.openSearch(search, p);
+			}else {
+				p.sendMessage(EnderBank.notificationString + " You must be looking at an ender chest!");
+			}
 			BankStorage.searchDatabase.remove(p);
 		}
 	}
