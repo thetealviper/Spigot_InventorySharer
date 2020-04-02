@@ -1,6 +1,6 @@
 name: "EnderBank"
 author: TheTealViper
-version: "1.15.2.a.3"
+version: "1.15.2.a.4"
 api-version: 1.13
 description: "Bank system from popular RPG's."
 main: me.TheTealViper.enderbank.EnderBank

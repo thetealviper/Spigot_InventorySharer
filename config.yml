@@ -13,9 +13,15 @@ Page_Price_Addition: 0
 #This is how much the bank page cost will be increased
 #by for every additional page.
 
+Must_Look_At_Chest_To_Search: true
+#This makes it so players must be looking at an EnderChest
+#to utilize the search feature, resulting in a "never left
+#the chest" experience despite actually exiting their bank
+#to enter their search term in the chat.
+
 ##########################################################
 #                        Version                         #
 ##########################################################
 
-VERSION: 1
+VERSION: 2
 #Do not touch this. No touchy.

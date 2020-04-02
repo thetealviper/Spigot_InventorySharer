@@ -19,6 +19,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
@@ -313,26 +315,29 @@ public class EnderBank extends JavaPlugin implements Listener {
 		
 	}
 	
-	/**[1.15.2.a.3] Using "onChestClick()" instead as the method below forces chest animation to stay open
+	//[1.15.2.a.3] Using "onChestClick()" instead as the method below forces chest animation to stay open
+	//[1.15.2.a.4] This is still here to handle the command /ec as that would open vanilla chest
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
 		if(e.getInventory().getType().equals(InventoryType.ENDER_CHEST)) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
-			BankStorage bank = BankStorage.getBank(p);
-			bank.openPage(1, p);
+			openEnderBank(p);
 		}
 	}
-	**/
 	
 	@EventHandler
 	public void onChestClick(PlayerInteractEvent e) {
 		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST)) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
-			BankStorage bank = BankStorage.getBank(p);
-			bank.openPage(1, p);
+			openEnderBank(p);
 		}
+	}
+	
+	public void openEnderBank(Player p) {
+		BankStorage bank = BankStorage.getBank(p);
+		bank.openPage(1, p);
 	}
 	
 	@EventHandler
@@ -354,7 +359,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			queue.remove(queue.size() - 1);
 			e.setCancelled(true);
 			Block b = p.getTargetBlock(null, 10);
-			if(b.getType().equals(Material.ENDER_CHEST)) {
+			if(!getConfig().getBoolean("Must_Look_At_Chest_To_Search") || b.getType().equals(Material.ENDER_CHEST)) {
 				String search = e.getMessage();
 				BankStorage bank = BankStorage.searchDatabase.get(p);
 				bank.openSearch(search, p);
