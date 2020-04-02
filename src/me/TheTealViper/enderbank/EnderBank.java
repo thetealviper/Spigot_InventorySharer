@@ -175,7 +175,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			if(e.getSlot() >= bank.itemIdentifiers.size()) {
 				e.setCancelled(true);
 			}
-		}else if(e.getSlot() != -1 && e.getClickedInventory() != null && e.getClickedInventory().equals(e.getView().getTopInventory())/**e.getView().getTitle().contains("'s Bank [Pg. ")**/) {
+		}else if(e.getSlot() != -1 && e.getClickedInventory() != null && e.getClickedInventory().equals(e.getView().getTopInventory()) && e.getView().getTitle().contains("'s Bank [Pg. ")) {
 			if(e.getSlot() == 7 || e.getSlot() == 16 || e.getSlot() == 25 || e.getSlot() == 26 || e.getSlot() == 34 || e.getSlot() == 43 || e.getSlot() == 52) {
 				e.setCancelled(true);
 			}else if(e.getSlot() == 8) { //next page
