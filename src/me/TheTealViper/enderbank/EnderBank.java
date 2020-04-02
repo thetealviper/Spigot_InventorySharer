@@ -15,12 +15,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -310,11 +310,24 @@ public class EnderBank extends JavaPlugin implements Listener {
 		
 		if(pendingResponseDatabase.containsKey(opener))
 			pendingResponseDatabase.remove(opener);
+		
 	}
 	
+	/**[1.15.2.a.3] Using "onChestClick()" instead as the method below forces chest animation to stay open
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
 		if(e.getInventory().getType().equals(InventoryType.ENDER_CHEST)) {
+			e.setCancelled(true);
+			Player p = (Player) e.getPlayer();
+			BankStorage bank = BankStorage.getBank(p);
+			bank.openPage(1, p);
+		}
+	}
+	**/
+	
+	@EventHandler
+	public void onChestClick(PlayerInteractEvent e) {
+		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST)) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
 			BankStorage bank = BankStorage.getBank(p);
