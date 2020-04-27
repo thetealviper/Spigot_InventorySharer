@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -127,13 +128,16 @@ public class EnderBank extends JavaPlugin implements Listener {
                 		String oPlayerName = args[1];
                 		@SuppressWarnings("deprecation")
 						OfflinePlayer oPlayerOffline = Bukkit.getOfflinePlayer(oPlayerName);
-                		if(oPlayerOffline.isOnline()) {
-                			Player oPlayer = oPlayerOffline.getPlayer();
-                			BankStorage bank = BankStorage.getBank(oPlayer);
+            			UUID oPlayerUUID = oPlayerOffline.getUniqueId();
+            			if(BankStorage.bankDatabase.containsKey(oPlayerUUID)) {
+            				BankStorage bank = BankStorage.getBank(oPlayerUUID);
                 			bank.openPage(1, p);
-                		}else {
-                			p.sendMessage("That player is not online.");
-                		}
+                    		if(!oPlayerOffline.isOnline()){
+                    			p.sendMessage("That player is not online. Opening last save of inventory.");
+                    		}
+            			}else {
+            				p.sendMessage("That bank does not exist yet. The player must sign in at least once.");
+            			}
                 	}else {
                 		warnmissingperms = true;
                 	}
@@ -336,7 +340,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	}
 	
 	public void openEnderBank(Player p) {
-		BankStorage bank = BankStorage.getBank(p);
+		BankStorage bank = BankStorage.getBank(p.getUniqueId());
 		bank.openPage(1, p);
 	}
 	

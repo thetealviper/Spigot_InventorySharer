@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,7 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import me.TheTealViper.enderbank.utils.PluginFile;
 
 public class BankStorage {
-	public static Map<Player, BankStorage> bankDatabase = new HashMap<Player, BankStorage>(); //	This links players to THEIR own bank
+	public static Map<UUID, BankStorage> bankDatabase = new HashMap<UUID, BankStorage>(); //	This links players to THEIR own bank
 	public static Map<Player, BankStorage> openBankDatabase = new HashMap<Player, BankStorage>(); //	This links players to the bank they are viewing
 	public static Map<Player, BankStorage> searchDatabase = new HashMap<Player, BankStorage>(); //	This links players to the last bank they tried to search
 	public static EnderBank plugin;
@@ -29,23 +30,23 @@ public class BankStorage {
 	public Inventory lastOpenedInventory;
 	public int lastOpenedPage;
 	public List<Integer> itemIdentifiers;
-	public Player bankOwner;
+	public UUID bankOwnerUUID;
 	
 	public static void setup(EnderBank plugin) {
 		BankStorage.plugin = plugin;
 	}
 	
-	public static BankStorage getBank(Player bankOwner) {
+	public static BankStorage getBank(UUID bankOwner) {
 		if(bankDatabase.containsKey(bankOwner))
 			return bankDatabase.get(bankOwner);
 		else
 			return new BankStorage(bankOwner);
 	}
 	
-	public BankStorage(Player bankOwner) {
-		bankDatabase.put(bankOwner, this);
-		this.bankOwner = bankOwner;
-		pf = new PluginFile(plugin, "banks/banks." + bankOwner.getUniqueId().toString() + ".yml");
+	public BankStorage(UUID bankOwnerUUID) {
+		bankDatabase.put(bankOwnerUUID, this);
+		this.bankOwnerUUID = bankOwnerUUID;
+		pf = new PluginFile(plugin, "banks/banks." + bankOwnerUUID.toString() + ".yml");
 		
 		//Load in defaults if not saved yet
 		if(!pf.contains("unlockedPages")) {
@@ -69,7 +70,7 @@ public class BankStorage {
 	
 	public void openPage(int page, Player opener) {
 		openBankDatabase.put(opener, this);
-		Inventory inv = Bukkit.createInventory(null, 54, bankOwner.getName() + "'s Bank [Pg. " + page + "]");
+		Inventory inv = Bukkit.createInventory(null, 54, Bukkit.getOfflinePlayer(bankOwnerUUID).getName() + "'s Bank [Pg. " + page + "]");
 		
 		int startingIndex = (page - 1) * 42;
 //		int endingIndex = page * 42 - 1;
