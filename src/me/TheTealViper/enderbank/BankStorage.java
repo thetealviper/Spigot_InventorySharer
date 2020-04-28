@@ -7,12 +7,11 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -69,6 +68,14 @@ public class BankStorage {
 	}
 	
 	public void openPage(int page, Player opener) {
+		if(page == 1 && EnderBank.plugin.getConfig().getBoolean("Enable_Open_Bank_Noise")) {
+			if(EnderBank.plugin.getConfig().getBoolean("Open_Bank_Noise_Global")) {
+				opener.getWorld().playSound(opener.getLocation(), Sound.valueOf(EnderBank.plugin.getConfig().getString("Open_Bank_Noise")), 1, 1);
+			}else {
+				opener.playSound(opener.getLocation(), Sound.valueOf(EnderBank.plugin.getConfig().getString("Open_Bank_Noise")), 1, 1);
+			}
+		}
+		
 		openBankDatabase.put(opener, this);
 		Inventory inv = Bukkit.createInventory(null, 54, Bukkit.getOfflinePlayer(bankOwnerUUID).getName() + "'s Bank [Pg. " + page + "]");
 		
@@ -87,54 +94,25 @@ public class BankStorage {
 			}
 		}
 		
-		ItemStack nextPage = new ItemStack(Material.PAPER);
-		ItemMeta nextPageMeta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		List<String> nextPageLore = new ArrayList<String>();
-		if(unlockedPages > page) {
-			nextPageMeta.setDisplayName("Next Page");
-			nextPage.setItemMeta(nextPageMeta);
-		}else {
-			nextPageMeta.setDisplayName("Next Page");
-			nextPageLore.add(ChatColor.RESET + "Click to Purchase");
-			nextPageLore.add(ChatColor.RESET + "Cost: " + getPageCost(page + 1));
-			nextPageMeta.setLore(nextPageLore);
-			nextPage.setItemMeta(nextPageMeta);
-		}
-		inv.setItem(8, nextPage);
 		
-		ItemStack previousPage = new ItemStack(Material.PAPER);
-		ItemMeta previousPageMeta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		previousPageMeta.setDisplayName("Previous Page");
-		previousPage.setItemMeta(previousPageMeta);
+		ItemStack NextPage = null;
+		if(unlockedPages > page) {
+			NextPage = CustomItemHandler.GetNextPage();
+		}else {
+			NextPage = CustomItemHandler.formatLoreSyntax(CustomItemHandler.GetBuyNextPage(), bankOwnerUUID);
+		}
+		inv.setItem(8, NextPage);
+		
+		ItemStack previousPage = CustomItemHandler.GetPreviousPage();
 		inv.setItem(17, previousPage);
 		
-		ItemStack dumpEquipment = new ItemStack(Material.IRON_HELMET);
-		ItemMeta dumpEquipmentMeta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		List<String> dumpEquipmentLore = new ArrayList<String>();
-		dumpEquipmentLore.add(ChatColor.RESET + "" + ChatColor.GRAY + "Click to dump all equipment");
-		dumpEquipmentMeta.setDisplayName("Dump Equipment");
-		dumpEquipmentMeta.setLore(dumpEquipmentLore);
-		dumpEquipmentMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-		dumpEquipment.setItemMeta(dumpEquipmentMeta);
+		ItemStack dumpEquipment = CustomItemHandler.GetDumpEquipment();
 		inv.setItem(35, dumpEquipment);
 		
-		ItemStack dumpItems = new ItemStack(Material.CHEST);
-		ItemMeta dumpItemsMeta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		List<String> dumpItemsLore = new ArrayList<String>();
-		dumpItemsLore.add(ChatColor.RESET + "" + ChatColor.GRAY + "Left click to dump all items in inventory (excluding the hotbar)");
-		dumpItemsLore.add(ChatColor.RESET + "" + ChatColor.GRAY + "Right click to dump all items in inventory (including the hotbar)");
-		dumpItemsMeta.setDisplayName("Dump Items");
-		dumpItemsMeta.setLore(dumpItemsLore);
-		dumpItems.setItemMeta(dumpItemsMeta);
+		ItemStack dumpItems = CustomItemHandler.GetDumpItems();
 		inv.setItem(44, dumpItems);
 		
-		ItemStack search = new ItemStack(Material.COMPASS);
-		ItemMeta searchMeta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		List<String> searchLore = new ArrayList<String>();
-		searchLore.add(ChatColor.RESET + "" + ChatColor.GRAY + "Click to search your bank");
-		searchMeta.setDisplayName("Search");
-		searchMeta.setLore(searchLore);
-		search.setItemMeta(searchMeta);
+		ItemStack search = CustomItemHandler.GetSearch();
 		inv.setItem(53, search);
 		
 		for(int row = 0;row < 6;row++) {

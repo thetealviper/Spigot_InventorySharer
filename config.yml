@@ -19,9 +19,70 @@ Must_Look_At_Chest_To_Search: true
 #the chest" experience despite actually exiting their bank
 #to enter their search term in the chat.
 
+Enable_Open_Bank_Noise: true
+#Enable this to play a noise upon opening a player's bank
+#It currently plays every time the first page is opened as this
+#is the only way it can work with the way the backend saves
+#the inventories and opens other pages.
+
+Open_Bank_Noise: "BLOCK_ENDER_CHEST_OPEN"
+#This is the correct name for the noise in 1.15.2
+#If you'd like to use a different noise or run a different minecraft
+#version, check documentation for exact sound name.
+
+Open_Bank_Noise_Global: true
+#If this is true, then the noise made upon opening a players'
+#bank will be heard by all nearby players. If false, only
+#the player opening the bank will hear it.
+
+##########################################################
+#                       GUI Items                        #
+##########################################################
+
+#Syntax:
+#%eb_pagecost% -> Cost of next page
+
+GUI:
+  Next_Page:
+    id: PAPER
+    name: "Next Page"
+  Buy_Next_Page:
+    id: PAPER
+    name: "Next Page"
+    lore:
+    - "&rClick to Purchase"
+    - "&rCost: %eb_pagecost%"
+  Confirm_Buy_Next_Page:
+    id: YELLOW_STAINED_GLASS_PANE
+    name: "Confirm Purchase"
+    lore:
+    - "&r&oClick again to confirm purchase!"
+  Previous_Page:
+    id: PAPER
+    name: "Previous Page"
+  Dump_Equipment:
+    id: IRON_HELMET
+    name: "Dump Equipment"
+    flags:
+    - HIDE_ATTRIBUTES
+  Dump_Items:
+    id: CHEST
+    name: "Dump Items"
+    lore:
+    - "&r&7Left click to dump all items in inventory (excluding the hotbar)"
+    - "&r&7Right click to dump all items in inventory (including the hotbar)"
+  Search:
+    id: COMPASS
+    name: "Search"
+  Separator:
+    id: BLACK_STAINED_GLASS_PANE
+    name: " "
+    flags:
+    - HIDE_ATTRIBUTES
+
 ##########################################################
 #                        Version                         #
 ##########################################################
 
-VERSION: 2
+VERSION: 3
 #Do not touch this. No touchy.

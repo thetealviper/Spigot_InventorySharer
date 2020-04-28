@@ -8,21 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
 public class ViperStringUtils {
-
-	// String constants. TODO Change them to something unique to avoid conflict with other plugins!
-	private static final String SEQUENCE_HEADER = "" + ChatColor.RESET + ChatColor.UNDERLINE + ChatColor.RESET;
-	private static final String SEQUENCE_FOOTER = "" + ChatColor.RESET + ChatColor.ITALIC + ChatColor.RESET;
 	
-	public static String convertToInvisibleString(String s) {
-        String hidden = "";
-        for (char c : s.toCharArray()) hidden += ChatColor.COLOR_CHAR+""+c;
-        return hidden;
-    }
-    public static String convertBack(String s){
-        //String converted = ChatColor.stripColor(s);
-        String converted = s.replaceAll("�", "");
-        return converted;
-    }
     public static String makeColors(String s){
         String replaced = s
                 .replaceAll("&0", "" + ChatColor.BLACK)
@@ -97,6 +83,17 @@ public class ViperStringUtils {
     		return new Location(Bukkit.getWorld(s[0]), Double.valueOf(s[1]), Double.valueOf(s[2]), Double.valueOf(s[3]), Float.valueOf(s[4]), Float.valueOf(s[5]));
     }
 	
+    
+    
+    
+    
+////////////////////
+// Encode Strings //
+////////////////////
+    // String constants. TODO Change them to something unique to avoid conflict with other plugins!
+ 	private static final String SEQUENCE_HEADER = "" + ChatColor.RESET + ChatColor.UNDERLINE + ChatColor.RESET;
+ 	private static final String SEQUENCE_FOOTER = "" + ChatColor.RESET + ChatColor.ITALIC + ChatColor.RESET;
+    
 	public static String encodeString(String hiddenString) {
 		return quote(stringToColors(hiddenString));
 	}
@@ -124,15 +121,10 @@ public class ViperStringUtils {
 		
 		return input.substring(0, start + SEQUENCE_HEADER.length()) + stringToColors(hiddenString) + input.substring(end, input.length());
 	}
-	
-	/**
-	 * Internal stuff.
-	 */
 	private static String quote(String input) {
 		if (input == null) return null;
 		return SEQUENCE_HEADER + input + SEQUENCE_FOOTER;
 	}
-	
 	private static String extract(String input) {
 		if (input == null) return null;
 		
@@ -145,7 +137,6 @@ public class ViperStringUtils {
 		
 		return input.substring(start + SEQUENCE_HEADER.length(), end);
 	}
-	
 	private static String stringToColors(String normal) {
 		if (normal == null) return null;
 		
@@ -162,7 +153,6 @@ public class ViperStringUtils {
 		
 		return new String(chars);
 	}
-	
 	private static String colorsToString(String colors) {
 		if (colors == null) return null;
 		
@@ -181,7 +171,6 @@ public class ViperStringUtils {
 
 		return new String(bytes, Charset.forName("UTF-8"));
 	}
-	
 	private static int hexToUnsignedInt(char c) {
 		if (c >= '0' && c <= '9') {
 			return c - 48;
@@ -191,7 +180,6 @@ public class ViperStringUtils {
 			throw new IllegalArgumentException("Invalid hex char: out of range");
 		}
 	}
-	
 	private static char unsignedIntToHex(int i) {
 		if (i >= 0 && i <= 9) {
 			return (char) (i + 48);
@@ -201,11 +189,9 @@ public class ViperStringUtils {
 			throw new IllegalArgumentException("Invalid hex int: out of range");
 		}
 	}
-
 	private static byte hexToByte(char hex1, char hex0) {
 		return (byte) (((hexToUnsignedInt(hex1) << 4) | hexToUnsignedInt(hex0)) + Byte.MIN_VALUE);
 	}
-	
 	private static char[] byteToHex(byte b) {
 		int unsignedByte = (int) b - Byte.MIN_VALUE;
 		return new char[]{unsignedIntToHex((unsignedByte >> 4) & 0xf), unsignedIntToHex(unsignedByte & 0xf)};

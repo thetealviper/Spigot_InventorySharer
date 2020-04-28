@@ -28,7 +28,7 @@ public class ItemCreator implements Listener{
 	public static Map<ItemStack, Integer> damageInfo = new HashMap<ItemStack, Integer>();
 	public static Map<ItemStack, Integer> forceStackInfo = new HashMap<ItemStack, Integer>();
 	
-	public static ItemStack createItemFromConfiguration(String foodName, ConfigurationSection sec){
+	public static ItemStack createItemFromConfiguration(ConfigurationSection sec){
 		if(durMats.isEmpty())
 			loadDurMats();
 		ItemStack item = null;
@@ -40,7 +40,6 @@ public class ItemCreator implements Listener{
 		}else {
 			item = new ItemStack(Material.getMaterial(sec.getString("id")));
 		}
-		List<String> tags = sec.contains("tags") ? sec.getStringList("tags") : new ArrayList<String>();
 		if(sec.contains("amount"))
 			item.setAmount(sec.getInt("amount"));
 		ItemMeta meta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
@@ -84,6 +83,7 @@ public class ItemCreator implements Listener{
                 item.addUnsafeEnchantment(Enchantment.SILK_TOUCH, level);
             }
 		}
+		List<String> tags = sec.contains("tags") ? sec.getStringList("tags") : new ArrayList<String>();
 		for(String s : tags){
     		if(s.startsWith("skullskin") && item.getType().equals(Material.PLAYER_HEAD)){
     			SkullMeta skull = (SkullMeta) item.getData();
@@ -98,11 +98,6 @@ public class ItemCreator implements Listener{
     			item.setItemMeta(meta);
     		}
     	}
-		for(String s : tags) {
-			if(s.startsWith("skulltexture") && item.getType().equals(Material.PLAYER_HEAD)){
-				item = Base64Skull.getSkull(item, s.replace("skulltexture:", "").split(";")[1], "http://textures.minecraft.net/texture/" + s.replace("skulltexture:", "").split(";")[0]);
-			}
-		}
 		List<String> lore = sec.contains("lore") ? sec.getStringList("lore") : new ArrayList<String>();
 		if(!lore.isEmpty()){
 			for(int i = 0;i < lore.size();i++){

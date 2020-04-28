@@ -25,8 +25,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,7 +44,6 @@ public class EnderBank extends JavaPlugin implements Listener {
 	public static Map<Player, List<String>> chatHandlerQueue = new HashMap<Player, List<String>>();
 	
 	//plugin specific variables
-	public static ItemStack confirmBuy;
 	public static Map<Player, String> pendingResponseDatabase = new HashMap<Player, String>();
 	public static List<Material> equipmentTypes = new ArrayList<Material>();
 	private static Economy econ = null;
@@ -67,15 +64,6 @@ public class EnderBank extends JavaPlugin implements Listener {
 		saveDefaultConfig();
 		
 		//Set initial values
-		ItemMeta meta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		confirmBuy = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
-		meta = Bukkit.getItemFactory().getItemMeta(Material.STICK);
-		meta.setDisplayName("Confirm Purchase");
-		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.RESET + "" + ChatColor.ITALIC + "Click again to confirm purchase!");
-		meta.setLore(lore);
-		confirmBuy.setItemMeta(meta);
-		
 		equipmentTypes.add(Material.CHAINMAIL_BOOTS);
 		equipmentTypes.add(Material.CHAINMAIL_CHESTPLATE);
 		equipmentTypes.add(Material.CHAINMAIL_HELMET);
@@ -198,7 +186,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 						opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
 					}
 				}else if(bank.lastOpenedPage == bank.unlockedPages) { //If clicking buy ask to confirm
-					e.getInventory().setItem(8, confirmBuy.clone());
+					e.getInventory().setItem(8, CustomItemHandler.GetConfirmBuyNextPage().clone());
 					pendingResponseDatabase.put(opener, "buypage");
 				}else{ //If clicking next page
 					pendingResponseDatabase.remove(opener);
@@ -316,7 +304,6 @@ public class EnderBank extends JavaPlugin implements Listener {
 		
 		if(pendingResponseDatabase.containsKey(opener))
 			pendingResponseDatabase.remove(opener);
-		
 	}
 	
 	//[1.15.2.a.3] Using "onChestClick()" instead as the method below forces chest animation to stay open
