@@ -35,6 +35,13 @@ Open_Bank_Noise_Global: true
 #bank will be heard by all nearby players. If false, only
 #the player opening the bank will hear it.
 
+#Disabled_Worlds:
+#- Default
+#- Default_Nether
+#- Example3
+#This is a list of worlds that the plugin is disabled in.
+#To enable this feature, simply uncomment it.
+
 ##########################################################
 #                       GUI Items                        #
 ##########################################################
@@ -84,5 +91,5 @@ GUI:
 #                        Version                         #
 ##########################################################
 
-VERSION: 3
+VERSION: 4
 #Do not touch this. No touchy.

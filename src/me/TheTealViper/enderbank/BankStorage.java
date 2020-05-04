@@ -42,6 +42,14 @@ public class BankStorage {
 			return new BankStorage(bankOwner);
 	}
 	
+	public static boolean hasBank(UUID bankOwner) {
+		PluginFile pf = new PluginFile(plugin, "banks/banks." + bankOwner.toString() + ".yml");
+		if(pf.contains("unlockedPages"))
+			return true;
+		else
+			return false;
+	}
+	
 	public BankStorage(UUID bankOwnerUUID) {
 		bankDatabase.put(bankOwnerUUID, this);
 		this.bankOwnerUUID = bankOwnerUUID;

@@ -39,6 +39,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	public static VersionType version;
 	public static String notificationString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "!" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET
 			, questionString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "?" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET;
+	private List<String> disabledWorlds;
 	
 	//Chat Queue (for asking which tracker you'd like to add)
 	public static Map<Player, List<String>> chatHandlerQueue = new HashMap<Player, List<String>>();
@@ -84,6 +85,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 		equipmentTypes.add(Material.DIAMOND_CHESTPLATE);
 		equipmentTypes.add(Material.DIAMOND_HELMET);
 		equipmentTypes.add(Material.DIAMOND_LEGGINGS);
+		disabledWorlds = getConfig().contains("Disabled_Worlds") ? getConfig().getStringList("Disabled_Worlds") : new ArrayList<String>();
 		
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp != null)
@@ -117,7 +119,7 @@ public class EnderBank extends JavaPlugin implements Listener {
                 		@SuppressWarnings("deprecation")
 						OfflinePlayer oPlayerOffline = Bukkit.getOfflinePlayer(oPlayerName);
             			UUID oPlayerUUID = oPlayerOffline.getUniqueId();
-            			if(BankStorage.bankDatabase.containsKey(oPlayerUUID)) {
+            			if(BankStorage.hasBank(oPlayerUUID)) {
             				BankStorage bank = BankStorage.getBank(oPlayerUUID);
                 			bank.openPage(1, p);
                     		if(!oPlayerOffline.isOnline()){
@@ -310,7 +312,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	//[1.15.2.a.4] This is still here to handle the command /ec as that would open vanilla chest
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
-		if(e.getInventory().getType().equals(InventoryType.ENDER_CHEST)) {
+		if(e.getInventory().getType().equals(InventoryType.ENDER_CHEST) && !disabledWorlds.contains(e.getPlayer().getWorld().getName())) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
 			openEnderBank(p);
@@ -319,7 +321,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void onChestClick(PlayerInteractEvent e) {
-		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST)) {
+		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST) && !disabledWorlds.contains(e.getPlayer().getWorld().getName())) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
 			openEnderBank(p);
