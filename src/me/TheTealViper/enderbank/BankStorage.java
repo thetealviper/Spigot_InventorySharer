@@ -50,19 +50,35 @@ public class BankStorage {
 			return false;
 	}
 	
+	//This method REQUIRES the player to be online to initialize their bank.
+	//This should be run the first time the player tries opening their ender inv
+	//and the enderbank is created.
+	public static void initiateBank(Player p) {
+		PluginFile pf = new PluginFile(plugin, "banks/banks." + p.getUniqueId().toString() + ".yml");
+		
+		//Set default items
+		for(int i = 0;i < 42;i++) {
+			pf.set("inventory." + i, new ItemStack(Material.AIR));
+		}
+		
+		//Carry over vanilla ender items
+		int index = 0;
+		for(ItemStack i : p.getEnderChest().getContents()) {
+			if(i != null && !i.getType().equals(Material.AIR)) {
+				pf.set("inventory." + index, i);
+				index++;
+			}
+		}
+		
+		//Set other default values
+		pf.set("unlockedPages", 1);
+		pf.save();
+	}
+	
 	public BankStorage(UUID bankOwnerUUID) {
 		bankDatabase.put(bankOwnerUUID, this);
 		this.bankOwnerUUID = bankOwnerUUID;
 		pf = new PluginFile(plugin, "banks/banks." + bankOwnerUUID.toString() + ".yml");
-		
-		//Load in defaults if not saved yet
-		if(!pf.contains("unlockedPages")) {
-			for(int i = 0;i < 42;i++) {
-				pf.set("inventory." + i, new ItemStack(Material.AIR));
-			}
-			pf.set("unlockedPages", 1);
-			pf.save();
-		}
 		
 		//Load in items
 		items = new ArrayList<ItemStack>();
