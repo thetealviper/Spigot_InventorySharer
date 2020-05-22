@@ -13,6 +13,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,10 +26,12 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.TheTealViper.enderbank.utils.EnableShit;
+import me.TheTealViper.enderbank.utils.LoadItemstackFromConfig;
 import me.TheTealViper.enderbank.utils.VersionType;
 import me.TheTealViper.enderbank.utils.ViperStringUtils;
 import net.milkbowl.vault.economy.Economy;
@@ -90,6 +93,23 @@ public class EnderBank extends JavaPlugin implements Listener {
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp != null)
             econ = rsp.getProvider();
+        
+        ConfigurationSection mainSec = getConfig().getConfigurationSection("Dump_Into_Inventory_Blacklist");
+        for(String itemIdentifier : mainSec.getKeys(false)) {
+        	ItemStack item = new LoadItemstackFromConfig().getItem(mainSec.getConfigurationSection(itemIdentifier));
+        	BankStorage.dumpBlacklistedItems.add(item);
+        }
+        
+        if(getConfig().getBoolean("Use_Item_For_Page_Price")) {
+        	for(String pageIdentifier : getConfig().getConfigurationSection("Page_Price_Items").getKeys(false)) {
+        		ItemStack item = new LoadItemstackFromConfig().getItem(getConfig().getConfigurationSection("Page_Price_Items." + pageIdentifier));
+        		if(pageIdentifier.equalsIgnoreCase("default")) {
+        			BankStorage.pagePriceItems.put(0, item);
+        		}else {
+        			BankStorage.pagePriceItems.put(Integer.valueOf(pageIdentifier), item);
+        		}
+        	}
+        }
 	}
 	
 	public void onDisable() {
@@ -159,7 +179,6 @@ public class EnderBank extends JavaPlugin implements Listener {
 		getServer().getConsoleSender().sendMessage(ViperStringUtils.makeColors(s));
 	}
 	
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent e) {
 		Player opener = (Player) e.getWhoClicked();
@@ -177,16 +196,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			}else if(e.getSlot() == 8) { //next page
 				e.setCancelled(true);
 				if(pendingResponseDatabase.containsKey(opener) && pendingResponseDatabase.get(opener).equals("buypage")) { //If responding to confirm purchase
-					//Confirm if have the funds
-					if(econ.has(opener.getName(), BankStorage.getPageCost(bank.unlockedPages + 1))) {
-						econ.withdrawPlayer(opener.getName(), BankStorage.getPageCost(bank.unlockedPages + 1));
-						pendingResponseDatabase.remove(opener);
-						bank.unlockedPages = bank.pf.getInt("unlockedPages") + 1;
-						bank.savePage(bank.lastOpenedPage, e.getInventory());
-						bank.openPage(bank.lastOpenedPage + 1, opener);
-					}else {
-						opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
-					}
+					bank.attemptToPurchasePage(econ, opener, e.getInventory());
 				}else if(bank.lastOpenedPage == bank.unlockedPages) { //If clicking buy ask to confirm
 					e.getInventory().setItem(8, CustomItemHandler.GetConfirmBuyNextPage().clone());
 					pendingResponseDatabase.put(opener, "buypage");
@@ -205,35 +215,15 @@ public class EnderBank extends JavaPlugin implements Listener {
 				}
 			}else if(e.getSlot() == 26) {
 				e.setCancelled(true);
-			}else if(e.getSlot() == 35) {
+			}else if(e.getSlot() == 35) { //Dump equipment
 				e.setCancelled(true);
-				bank.savePage(bank.lastOpenedPage, e.getInventory());
-				for(int j = 9;j < 13;j++) {
-					if(opener.getInventory().getItem(j) != null) {
-						//Check if rune filler
-//							boolean currentIsTome = false;
-//							if(!p.getInventory().getItem(j).getType().toString().equals("AIR")) {
-//								if(p.getInventory().getItem(j).hasItemMeta()) {
-//									if(p.getInventory().getItem(j).getItemMeta().hasDisplayName()) {
-//										if(p.getInventory().getItem(j).getItemMeta().getDisplayName().contains("Tome")) {
-//											currentIsTome = true;
-//										}else {
-//
-//										}
-//									}else {
-//
-//									}
-//								}else {
-//
-//								}
-//							}
-//							
-//							if(currentIsTome) {
-//								bank.attemptToAddToBank(j);
-//								p.getInventory().setItem(j, CustomItemHandler.GetRelicFiller());
-//							}
-					}
+				
+				if(getConfig().getBoolean("Disable_Dump_Into_Inventory")) {
+					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
+					return;
 				}
+				
+				bank.savePage(bank.lastOpenedPage, e.getInventory());
 				for(int j = 36;j < 40;j++) {
 					if(opener.getInventory().getItem(j) != null) {
 						bank.attemptToAddToBank(j, opener);
@@ -242,6 +232,12 @@ public class EnderBank extends JavaPlugin implements Listener {
 				bank.openPage(bank.lastOpenedPage, opener);
 			}else if(e.getSlot() == 44) { //Dump all items
 				e.setCancelled(true);
+				
+				if(getConfig().getBoolean("Disable_Dump_Into_Inventory")) {
+					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
+					return;
+				}
+				
 				bank.savePage(bank.lastOpenedPage, e.getInventory());
 				if(e.getAction().equals(InventoryAction.PICKUP_ALL)) { //Encluding hotbar
 					for(int j = 9;j < 36;j++) {

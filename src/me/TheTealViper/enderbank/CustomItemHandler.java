@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import me.TheTealViper.enderbank.utils.ItemCreator;
+import me.TheTealViper.enderbank.utils.LoadItemstackFromConfig;
 
 public class CustomItemHandler implements Listener{
 	
@@ -37,7 +37,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack NextPage = null;
 	public static ItemStack GetNextPage(){
 		if(NextPage == null) {
-	        NextPage = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Next_Page"));
+	        NextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Next_Page"));
 		}
 		return NextPage.clone();
 	}
@@ -45,7 +45,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack BuyNextPage = null;
 	public static ItemStack GetBuyNextPage(){
 		if(BuyNextPage == null) {
-	        BuyNextPage = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Buy_Next_Page"));
+	        BuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Buy_Next_Page"));
 		}
 		return BuyNextPage.clone();
 	}
@@ -53,7 +53,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack ConfirmBuyNextPage = null;
 	public static ItemStack GetConfirmBuyNextPage(){
 		if(ConfirmBuyNextPage == null) {
-			ConfirmBuyNextPage = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Confirm_Buy_Next_Page"));
+			ConfirmBuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Confirm_Buy_Next_Page"));
 		}
 		return ConfirmBuyNextPage.clone();
 	}
@@ -61,7 +61,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack PreviousPage = null;
 	public static ItemStack GetPreviousPage(){
 		if(PreviousPage == null) {
-	        PreviousPage = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Previous_Page"));
+	        PreviousPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Previous_Page"));
 		}
 		return PreviousPage.clone();
 	}
@@ -69,7 +69,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack DumpEquipment = null;
 	public static ItemStack GetDumpEquipment(){
 		if(DumpEquipment == null) {
-	        DumpEquipment = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Equipment"));
+	        DumpEquipment = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Equipment"));
 		}
 		return DumpEquipment.clone();
 	}
@@ -77,7 +77,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack DumpItems = null;
 	public static ItemStack GetDumpItems(){
 		if(DumpItems == null) {
-	        DumpItems = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Items"));
+	        DumpItems = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Items"));
 		}
 		return DumpItems.clone();
 	}
@@ -85,7 +85,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack Search = null;
 	public static ItemStack GetSearch(){
 		if(Search == null) {
-	        Search = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Search"));
+	        Search = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Search"));
 		}
 		return Search.clone();
 	}
@@ -93,7 +93,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack Separator = null;
 	public static ItemStack GetSeparator(){
 		if(Separator == null) {
-	        Separator = ItemCreator.createItemFromConfiguration(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Separator"));
+	        Separator = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Separator"));
 		}
 		return Separator.clone();
 	}
@@ -102,8 +102,38 @@ public class CustomItemHandler implements Listener{
 		List<String> lore = item.hasItemMeta() && item.getItemMeta().hasLore() ? item.getItemMeta().getLore() : new ArrayList<String>();
 		List<String> dummy = new ArrayList<String> (lore);
 		BankStorage bank = BankStorage.getBank(uuid);
+		ItemStack pageCostItem = null;
 		for(int i = 0;i < dummy.size();i++) {
-			lore.set(i, dummy.get(i).replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + ""));
+			String s = dummy.get(i);
+			while(s.contains("%eb_pagecost%"))
+				s = s.replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + "");
+			while(s.contains("%eb_pagecostitemname%")) {
+				if(pageCostItem == null) {
+					if(BankStorage.pagePriceItems.containsKey(bank.unlockedPages + 1)) {
+						pageCostItem = BankStorage.pagePriceItems.get(bank.unlockedPages + 1);
+					} else {
+						pageCostItem = BankStorage.pagePriceItems.get(0);
+					}
+				}
+				if(pageCostItem.hasItemMeta() && pageCostItem.getItemMeta().hasDisplayName())
+					s = s.replace("%eb_pagecostitemname%", pageCostItem.getItemMeta().getDisplayName());
+				else {
+					String type = pageCostItem.getType().toString();
+					type = type.replaceAll("_", " ");
+					type = type.substring(0, 1) + type.substring(1).toLowerCase();
+					s = s.replace("%eb_pagecostitemname%", type);
+				}
+			}
+			while(s.contains("%eb_pagecostitemamount%")) {
+				if(pageCostItem == null) {
+					if(BankStorage.pagePriceItems.containsKey(bank.unlockedPages + 1))
+						pageCostItem = BankStorage.pagePriceItems.get(bank.unlockedPages + 1);
+					else
+						pageCostItem = BankStorage.pagePriceItems.get(0);
+				}
+				s = s.replace("%eb_pagecostitemamount%", BankStorage.pagePriceItems.get(bank.unlockedPages + 1).getAmount() + "");
+			}
+			lore.set(i, s);
 		}
 		ItemMeta meta = item.getItemMeta();
 		meta.setLore(lore);

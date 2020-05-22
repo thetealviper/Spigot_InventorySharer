@@ -15,13 +15,17 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import me.TheTealViper.enderbank.utils.LoadItemstackFromConfig;
 import me.TheTealViper.enderbank.utils.PluginFile;
+import net.milkbowl.vault.economy.Economy;
 
 public class BankStorage {
 	public static Map<UUID, BankStorage> bankDatabase = new HashMap<UUID, BankStorage>(); //	This links players to THEIR own bank
 	public static Map<Player, BankStorage> openBankDatabase = new HashMap<Player, BankStorage>(); //	This links players to the bank they are viewing
 	public static Map<Player, BankStorage> searchDatabase = new HashMap<Player, BankStorage>(); //	This links players to the last bank they tried to search
 	public static EnderBank plugin;
+	public static List<ItemStack> dumpBlacklistedItems = new ArrayList<ItemStack>();
+	public static Map<Integer, ItemStack> pagePriceItems = new HashMap<Integer, ItemStack>();
 	
 	public List<ItemStack> items;
 	public int unlockedPages;
@@ -30,6 +34,11 @@ public class BankStorage {
 	public int lastOpenedPage;
 	public List<Integer> itemIdentifiers;
 	public UUID bankOwnerUUID;
+	
+	//Multiple people editing the same EnderBank at the same time should 100% corrupt the saves and lead to potential duplication methods.
+	//Don't do that.
+	//If you're reading this and not TheTealViper, now you know the secret.
+	//Staff are the only ones who could open an enderbank at the same time though so there would have to be a rat who helps players dupe.
 	
 	public static void setup(EnderBank plugin) {
 		BankStorage.plugin = plugin;
@@ -191,7 +200,14 @@ public class BankStorage {
 			if(replaced)
 				continue;
 			
-			//First check for same items
+			//First check for blacklist
+			for(ItemStack blacklistedItem : dumpBlacklistedItems) {
+				if(blacklistedItem.isSimilar(pItem)) {
+					return;
+				}
+			}
+			
+			//Second check for same items
 			if(items.get(i).isSimilar(pItem)) { //If there is empty space in the bank
 				ItemStack bItem = items.get(i);
 				int bAmount = bItem.getAmount();
@@ -222,6 +238,70 @@ public class BankStorage {
 		opener.getInventory().setItem(playerInvSlotNumber, pItem);
 		if(playerInvSlotNumber == 40 && pAmount == 0)
 			opener.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+	}
+
+	@SuppressWarnings("deprecation")
+	public void attemptToPurchasePage(Economy econ, Player opener, Inventory inv) {
+		if(plugin.getConfig().getBoolean("Use_Item_For_Page_Price")) {
+			ConfigurationSection sec = plugin.getConfig().contains("Page_Price_Items." + (lastOpenedPage+1)) ? plugin.getConfig().getConfigurationSection("Page_Price_Items." + (lastOpenedPage+1)) : plugin.getConfig().getConfigurationSection("Page_Price_Items.Default");
+			ItemStack itemRequiredForPay = new LoadItemstackFromConfig().getItem(sec);
+			int amountRequiredForPayment = itemRequiredForPay.getAmount();
+			int amountPlayerHas = 0;
+			
+			//Check if player has enough of item
+			for(ItemStack i : opener.getInventory().getContents()) {
+				if(i != null && LoadItemstackFromConfig.isSimilar(i, itemRequiredForPay))
+					amountPlayerHas += i.getAmount();
+			}
+			if(amountPlayerHas < amountRequiredForPayment) {
+				opener.sendMessage(EnderBank.notificationString + " You don't have required items!");
+				return;
+			}
+			
+			//Check balance of player if funds also involved
+			if(!econ.has(opener.getName(), BankStorage.getPageCost(unlockedPages + 1))) {
+				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
+				return;
+			}
+			
+			//Remove items from player
+			int amountToRemove = amountRequiredForPayment;
+			for(ItemStack i : opener.getInventory().getContents()) {
+				if(i != null && LoadItemstackFromConfig.isSimilar(i, itemRequiredForPay)){
+					if(amountToRemove > i.getAmount()) {
+						amountToRemove -= i.getAmount();
+						i.setAmount(0);
+					}else {
+						i.setAmount(i.getAmount() - amountToRemove);
+						amountToRemove = 0;
+					}
+				}
+			}
+			
+			//Remove cash from player
+			econ.withdrawPlayer(opener.getName(), BankStorage.getPageCost(unlockedPages + 1));
+			
+			//Close out of purchase state
+			EnderBank.pendingResponseDatabase.remove(opener);
+			unlockedPages = pf.getInt("unlockedPages") + 1;
+			savePage(lastOpenedPage, inv);
+			openPage(lastOpenedPage + 1, opener);
+		}else {
+			//Check balance of player if funds also involved
+			if(!econ.has(opener.getName(), BankStorage.getPageCost(unlockedPages + 1))) {
+				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
+				return;
+			}
+			
+			//Remove cash from player
+			econ.withdrawPlayer(opener.getName(), BankStorage.getPageCost(unlockedPages + 1));
+			
+			//Close out of purchase state
+			EnderBank.pendingResponseDatabase.remove(opener);
+			unlockedPages = pf.getInt("unlockedPages") + 1;
+			savePage(lastOpenedPage, inv);
+			openPage(lastOpenedPage + 1, opener);
+		}
 	}
 	
 	public void openSearch(String search, Player opener) {
