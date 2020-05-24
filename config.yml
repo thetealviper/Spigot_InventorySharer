@@ -20,17 +20,17 @@ Page_Price_Items:
  2:
   id: "STICK"
   amount: 2
- #This item "2" is the item required for the second page (first unlocked). Same goes for other pages.
+#This item "2" is the item required for the second page (first unlocked). Same goes for other pages.
  Default:
   id: "EMERALD"
   name: "&r&cEnderBank Storage Upgrade"
   amount: 1
   lore:
    - "&r&7Use me to upgrade your EnderBank page count!"
- #This default item is the one that will be looked for if a specific page doesn't
- #have an item like how page 1 does above.
- #If you wish to cap the EnderBank page counts, simply put specific items for all
- #the pages you wish to include, and then make the default item something unobtainable.
+#This default item is the one that will be looked for if a specific page doesn't
+#have an item like how page 1 does above.
+#If you wish to cap the EnderBank page counts, simply put specific items for all
+#the pages you wish to include, and then make the default item something unobtainable.
 
 Must_Look_At_Chest_To_Search: true
 #This makes it so players must be looking at an EnderChest
@@ -77,7 +77,7 @@ Dump_Into_Inventory_Blacklist:
 #you see fit. PROBABLY REMOVE THE VANILLA STICK FROM IT.
 
 ##########################
-###Syntax for each item###
+###Item Building Syntax###
 ##########################
 
 #id: DIRT							(Required)

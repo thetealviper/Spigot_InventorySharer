@@ -32,6 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import me.TheTealViper.enderbank.utils.EnableShit;
 import me.TheTealViper.enderbank.utils.LoadItemstackFromConfig;
+import me.TheTealViper.enderbank.utils.PluginFile;
 import me.TheTealViper.enderbank.utils.VersionType;
 import me.TheTealViper.enderbank.utils.ViperStringUtils;
 import net.milkbowl.vault.economy.Economy;
@@ -43,6 +44,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	public static String notificationString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "!" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET
 			, questionString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "?" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET;
 	private List<String> disabledWorlds;
+	public static PluginFile pf;
 	
 	//Chat Queue (for asking which tracker you'd like to add)
 	public static Map<Player, List<String>> chatHandlerQueue = new HashMap<Player, List<String>>();
@@ -66,6 +68,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 		
 		//Load values from config
 		saveDefaultConfig();
+		pf = new PluginFile(this, "config.yml", "f.yml", false);
 		
 		//Set initial values
 		equipmentTypes.add(Material.CHAINMAIL_BOOTS);
@@ -88,21 +91,21 @@ public class EnderBank extends JavaPlugin implements Listener {
 		equipmentTypes.add(Material.DIAMOND_CHESTPLATE);
 		equipmentTypes.add(Material.DIAMOND_HELMET);
 		equipmentTypes.add(Material.DIAMOND_LEGGINGS);
-		disabledWorlds = getConfig().contains("Disabled_Worlds") ? getConfig().getStringList("Disabled_Worlds") : new ArrayList<String>();
+		disabledWorlds = pf.contains("Disabled_Worlds") ? pf.getStringList("Disabled_Worlds") : new ArrayList<String>();
 		
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp != null)
             econ = rsp.getProvider();
         
-        ConfigurationSection mainSec = getConfig().getConfigurationSection("Dump_Into_Inventory_Blacklist");
+        ConfigurationSection mainSec = pf.getConfigurationSection("Dump_Into_Inventory_Blacklist");
         for(String itemIdentifier : mainSec.getKeys(false)) {
         	ItemStack item = new LoadItemstackFromConfig().getItem(mainSec.getConfigurationSection(itemIdentifier));
         	BankStorage.dumpBlacklistedItems.add(item);
         }
         
-        if(getConfig().getBoolean("Use_Item_For_Page_Price")) {
-        	for(String pageIdentifier : getConfig().getConfigurationSection("Page_Price_Items").getKeys(false)) {
-        		ItemStack item = new LoadItemstackFromConfig().getItem(getConfig().getConfigurationSection("Page_Price_Items." + pageIdentifier));
+        if(pf.getBoolean("Use_Item_For_Page_Price")) {
+        	for(String pageIdentifier : pf.getConfigurationSection("Page_Price_Items").getKeys(false)) {
+        		ItemStack item = new LoadItemstackFromConfig().getItem(pf.getConfigurationSection("Page_Price_Items." + pageIdentifier));
         		if(pageIdentifier.equalsIgnoreCase("default")) {
         			BankStorage.pagePriceItems.put(0, item);
         		}else {
@@ -218,7 +221,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			}else if(e.getSlot() == 35) { //Dump equipment
 				e.setCancelled(true);
 				
-				if(getConfig().getBoolean("Disable_Dump_Into_Inventory")) {
+				if(pf.getBoolean("Disable_Dump_Into_Inventory")) {
 					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
 					return;
 				}
@@ -233,7 +236,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			}else if(e.getSlot() == 44) { //Dump all items
 				e.setCancelled(true);
 				
-				if(getConfig().getBoolean("Disable_Dump_Into_Inventory")) {
+				if(pf.getBoolean("Disable_Dump_Into_Inventory")) {
 					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
 					return;
 				}
@@ -334,6 +337,16 @@ public class EnderBank extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent e) {
 		Player p = e.getPlayer();
+		//DEBUG
+		Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {public void run() {
+			Map<Integer, ItemStack> dummy = new HashMap<Integer, ItemStack>(BankStorage.pagePriceItems);
+			for(int pageID : dummy.keySet()) {
+				Bukkit.broadcastMessage(pageID + " : " + BankStorage.pagePriceItems.get(pageID));
+			}
+			p.getWorld().dropItem(p.getLocation(), BankStorage.pagePriceItems.get(2));
+			Bukkit.broadcastMessage(pf.getStringList("Page_Price_Items.Default.lore").get(0));
+		}}, 1);
+		//
 		if(!chatHandlerQueue.containsKey(p))
 			return;
 		List<String> queue = chatHandlerQueue.get(p);
@@ -350,7 +363,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 			queue.remove(queue.size() - 1);
 			e.setCancelled(true);
 			Block b = p.getTargetBlock(null, 10);
-			if(!getConfig().getBoolean("Must_Look_At_Chest_To_Search") || b.getType().equals(Material.ENDER_CHEST)) {
+			if(!pf.getBoolean("Must_Look_At_Chest_To_Search") || b.getType().equals(Material.ENDER_CHEST)) {
 				String search = e.getMessage();
 				BankStorage bank = BankStorage.searchDatabase.get(p);
 				bank.openSearch(search, p);

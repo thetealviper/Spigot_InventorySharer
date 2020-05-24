@@ -52,7 +52,7 @@ public class BankStorage {
 	}
 	
 	public static boolean hasBank(UUID bankOwner) {
-		PluginFile pf = new PluginFile(plugin, "banks/banks." + bankOwner.toString() + ".yml");
+		PluginFile pf = new PluginFile(plugin, "banks/banks." + bankOwner.toString() + ".yml", true);
 		if(pf.contains("unlockedPages"))
 			return true;
 		else
@@ -63,7 +63,7 @@ public class BankStorage {
 	//This should be run the first time the player tries opening their ender inv
 	//and the enderbank is created.
 	public static void initiateBank(Player p) {
-		PluginFile pf = new PluginFile(plugin, "banks/banks." + p.getUniqueId().toString() + ".yml");
+		PluginFile pf = new PluginFile(plugin, "banks/banks." + p.getUniqueId().toString() + ".yml", true);
 		
 		//Set default items
 		for(int i = 0;i < 42;i++) {
@@ -87,7 +87,7 @@ public class BankStorage {
 	public BankStorage(UUID bankOwnerUUID) {
 		bankDatabase.put(bankOwnerUUID, this);
 		this.bankOwnerUUID = bankOwnerUUID;
-		pf = new PluginFile(plugin, "banks/banks." + bankOwnerUUID.toString() + ".yml");
+		pf = new PluginFile(plugin, "banks/banks." + bankOwnerUUID.toString() + ".yml", true);
 		
 		//Load in items
 		items = new ArrayList<ItemStack>();
@@ -101,11 +101,11 @@ public class BankStorage {
 	}
 	
 	public void openPage(int page, Player opener) {
-		if(page == 1 && EnderBank.plugin.getConfig().getBoolean("Enable_Open_Bank_Noise")) {
-			if(EnderBank.plugin.getConfig().getBoolean("Open_Bank_Noise_Global")) {
-				opener.getWorld().playSound(opener.getLocation(), Sound.valueOf(EnderBank.plugin.getConfig().getString("Open_Bank_Noise")), 1, 1);
+		if(page == 1 && EnderBank.pf.getBoolean("Enable_Open_Bank_Noise")) {
+			if(EnderBank.pf.getBoolean("Open_Bank_Noise_Global")) {
+				opener.getWorld().playSound(opener.getLocation(), Sound.valueOf(EnderBank.pf.getString("Open_Bank_Noise")), 1, 1);
 			}else {
-				opener.playSound(opener.getLocation(), Sound.valueOf(EnderBank.plugin.getConfig().getString("Open_Bank_Noise")), 1, 1);
+				opener.playSound(opener.getLocation(), Sound.valueOf(EnderBank.pf.getString("Open_Bank_Noise")), 1, 1);
 			}
 		}
 		
@@ -183,9 +183,9 @@ public class BankStorage {
 	}
 	
 	public static int getPageCost(int page) {
-		int starter = plugin.getConfig().getInt("Default_Page_Price");
-		double multiplier = plugin.getConfig().getDouble("Page_Price_Multiplier");
-		int addition = plugin.getConfig().getInt("Page_Price_Addition");
+		int starter = EnderBank.pf.getInt("Default_Page_Price");
+		double multiplier = EnderBank.pf.getDouble("Page_Price_Multiplier");
+		int addition = EnderBank.pf.getInt("Page_Price_Addition");
 		int partOne = (int) (starter * Math.pow(multiplier, page - 2));
 		int price = partOne + (addition * (page - 2));
 		return price;
@@ -242,8 +242,8 @@ public class BankStorage {
 
 	@SuppressWarnings("deprecation")
 	public void attemptToPurchasePage(Economy econ, Player opener, Inventory inv) {
-		if(plugin.getConfig().getBoolean("Use_Item_For_Page_Price")) {
-			ConfigurationSection sec = plugin.getConfig().contains("Page_Price_Items." + (lastOpenedPage+1)) ? plugin.getConfig().getConfigurationSection("Page_Price_Items." + (lastOpenedPage+1)) : plugin.getConfig().getConfigurationSection("Page_Price_Items.Default");
+		if(EnderBank.pf.getBoolean("Use_Item_For_Page_Price")) {
+			ConfigurationSection sec = EnderBank.pf.contains("Page_Price_Items." + (lastOpenedPage+1)) ? EnderBank.pf.getConfigurationSection("Page_Price_Items." + (lastOpenedPage+1)) : EnderBank.pf.getConfigurationSection("Page_Price_Items.Default");
 			ItemStack itemRequiredForPay = new LoadItemstackFromConfig().getItem(sec);
 			int amountRequiredForPayment = itemRequiredForPay.getAmount();
 			int amountPlayerHas = 0;

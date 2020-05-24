@@ -37,7 +37,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack NextPage = null;
 	public static ItemStack GetNextPage(){
 		if(NextPage == null) {
-	        NextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Next_Page"));
+	        NextPage = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Next_Page"));
 		}
 		return NextPage.clone();
 	}
@@ -45,7 +45,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack BuyNextPage = null;
 	public static ItemStack GetBuyNextPage(){
 		if(BuyNextPage == null) {
-	        BuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Buy_Next_Page"));
+	        BuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Buy_Next_Page"));
 		}
 		return BuyNextPage.clone();
 	}
@@ -53,7 +53,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack ConfirmBuyNextPage = null;
 	public static ItemStack GetConfirmBuyNextPage(){
 		if(ConfirmBuyNextPage == null) {
-			ConfirmBuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Confirm_Buy_Next_Page"));
+			ConfirmBuyNextPage = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Confirm_Buy_Next_Page"));
 		}
 		return ConfirmBuyNextPage.clone();
 	}
@@ -61,7 +61,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack PreviousPage = null;
 	public static ItemStack GetPreviousPage(){
 		if(PreviousPage == null) {
-	        PreviousPage = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Previous_Page"));
+	        PreviousPage = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Previous_Page"));
 		}
 		return PreviousPage.clone();
 	}
@@ -69,7 +69,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack DumpEquipment = null;
 	public static ItemStack GetDumpEquipment(){
 		if(DumpEquipment == null) {
-	        DumpEquipment = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Equipment"));
+	        DumpEquipment = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Dump_Equipment"));
 		}
 		return DumpEquipment.clone();
 	}
@@ -77,7 +77,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack DumpItems = null;
 	public static ItemStack GetDumpItems(){
 		if(DumpItems == null) {
-	        DumpItems = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Dump_Items"));
+	        DumpItems = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Dump_Items"));
 		}
 		return DumpItems.clone();
 	}
@@ -85,7 +85,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack Search = null;
 	public static ItemStack GetSearch(){
 		if(Search == null) {
-	        Search = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Search"));
+	        Search = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Search"));
 		}
 		return Search.clone();
 	}
@@ -93,7 +93,7 @@ public class CustomItemHandler implements Listener{
 	static ItemStack Separator = null;
 	public static ItemStack GetSeparator(){
 		if(Separator == null) {
-	        Separator = new LoadItemstackFromConfig().getItem(EnderBank.plugin.getConfig().getConfigurationSection("GUI.Separator"));
+	        Separator = new LoadItemstackFromConfig().getItem(EnderBank.pf.getConfigurationSection("GUI.Separator"));
 		}
 		return Separator.clone();
 	}
@@ -115,8 +115,9 @@ public class CustomItemHandler implements Listener{
 						pageCostItem = BankStorage.pagePriceItems.get(0);
 					}
 				}
-				if(pageCostItem.hasItemMeta() && pageCostItem.getItemMeta().hasDisplayName())
+				if(pageCostItem.hasItemMeta() && pageCostItem.getItemMeta().hasDisplayName()) {
 					s = s.replace("%eb_pagecostitemname%", pageCostItem.getItemMeta().getDisplayName());
+				}
 				else {
 					String type = pageCostItem.getType().toString();
 					type = type.replaceAll("_", " ");
@@ -126,12 +127,13 @@ public class CustomItemHandler implements Listener{
 			}
 			while(s.contains("%eb_pagecostitemamount%")) {
 				if(pageCostItem == null) {
-					if(BankStorage.pagePriceItems.containsKey(bank.unlockedPages + 1))
+					if(BankStorage.pagePriceItems.containsKey(bank.unlockedPages + 1)) {
 						pageCostItem = BankStorage.pagePriceItems.get(bank.unlockedPages + 1);
-					else
+					} else {
 						pageCostItem = BankStorage.pagePriceItems.get(0);
+					}
 				}
-				s = s.replace("%eb_pagecostitemamount%", BankStorage.pagePriceItems.get(bank.unlockedPages + 1).getAmount() + "");
+				s = s.replace("%eb_pagecostitemamount%", pageCostItem.getAmount() + "");
 			}
 			lore.set(i, s);
 		}

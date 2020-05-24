@@ -11,17 +11,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PluginFile extends YamlConfiguration {   
    
-    private File file;
+	private File file;
     private String defaults;
     private JavaPlugin plugin;
+    private boolean saveDefaults;
    
     /**
      * Creates new PluginFile, without defaults
      * @param plugin - Your plugin
      * @param fileName - Name of the file
      */
-    public PluginFile(JavaPlugin plugin, String fileName) {
-        this(plugin, fileName, null);
+    public PluginFile(JavaPlugin plugin, String fileName, boolean saveDefaults) {
+        this(plugin, fileName, null, saveDefaults);
     }
    
     /**
@@ -30,10 +31,11 @@ public class PluginFile extends YamlConfiguration {
      * @param fileName - Name of the file
      * @param defaultsName - Name of the defaults
      */
-    public PluginFile(JavaPlugin plugin, String fileName, String defaultsName) {
+    public PluginFile(JavaPlugin plugin, String fileName, String defaultsName, boolean saveDefaults) {
         this.plugin = plugin;
         this.defaults = defaultsName;
         this.file = new File(plugin.getDataFolder(), fileName);
+        this.saveDefaults = saveDefaults;
         reload();
     }
    
@@ -58,7 +60,7 @@ public class PluginFile extends YamlConfiguration {
         try {
             load(file);
            
-            if (defaults != null) {
+            if (defaults != null && saveDefaults) {
                 InputStreamReader reader = new InputStreamReader(plugin.getResource(defaults));
                 FileConfiguration defaultsConfig = YamlConfiguration.loadConfiguration(reader);       
                
