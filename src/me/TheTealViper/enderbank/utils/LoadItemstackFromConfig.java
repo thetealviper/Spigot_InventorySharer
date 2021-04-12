@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Base64;
@@ -173,7 +172,6 @@ public class LoadItemstackFromConfig {
 					     meta = skullMeta;
 						break;
 					case "vanilladurability":
-						Bukkit.broadcastMessage("changing durability: " + value);
 						Damageable dam = (Damageable) meta;
 						dam.setDamage(Integer.valueOf(value));
 						meta = (ItemMeta) dam;

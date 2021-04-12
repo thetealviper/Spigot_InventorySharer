@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import me.TheTealViper.enderbank.utils.LoadItemstackFromConfig;
 import me.TheTealViper.enderbank.utils.PluginFile;
+import me.TheTealViper.enderbank.utils.ViperStringUtils;
 import net.milkbowl.vault.economy.Economy;
 
 public class BankStorage {
@@ -101,6 +102,9 @@ public class BankStorage {
 	}
 	
 	public void openPage(int page, Player opener) {
+		//Backup check to make sure bank has been made
+		BankStorage.getBank(bankOwnerUUID);
+		
 		if(page == 1 && EnderBank.pf.getBoolean("Enable_Open_Bank_Noise")) {
 			if(EnderBank.pf.getBoolean("Open_Bank_Noise_Global")) {
 				opener.getWorld().playSound(opener.getLocation(), Sound.valueOf(EnderBank.pf.getString("Open_Bank_Noise")), 1, 1);
@@ -242,6 +246,20 @@ public class BankStorage {
 
 	@SuppressWarnings("deprecation")
 	public void attemptToPurchasePage(Economy econ, Player opener, Inventory inv) {
+		int maxPage = EnderBank.pf.getInt("Maximum_Pages_Allowed");
+		if(maxPage != -1 && unlockedPages >= maxPage) {
+			opener.sendMessage(ViperStringUtils.makeColors(EnderBank.formatString(EnderBank.messages.getString("Attempt_To_Purchase_More_Than_Max_Pages"), opener.getUniqueId())));
+//			opener.sendMessage(EnderBank.notificationString + " You can't purchase that many pages!");
+			return;
+		}
+		if(EnderBank.pf.getBoolean("Enable_Permission_Mode")) {
+			if(!opener.hasPermission("enderbank.buypage." + (unlockedPages + 1))) {
+				opener.sendMessage(ViperStringUtils.makeColors(EnderBank.formatString(EnderBank.messages.getString("Attempt_To_Purchase_More_Pages_Than_Perms"), opener.getUniqueId())));
+//				opener.sendMessage(EnderBank.notificationString + " You don't have permission to purchase that many pages!");
+				return;
+			}
+		}
+		
 		if(EnderBank.pf.getBoolean("Use_Item_For_Page_Price")) {
 			ConfigurationSection sec = EnderBank.pf.contains("Page_Price_Items." + (lastOpenedPage+1)) ? EnderBank.pf.getConfigurationSection("Page_Price_Items." + (lastOpenedPage+1)) : EnderBank.pf.getConfigurationSection("Page_Price_Items.Default");
 			ItemStack itemRequiredForPay = new LoadItemstackFromConfig().getItem(sec);
@@ -254,13 +272,15 @@ public class BankStorage {
 					amountPlayerHas += i.getAmount();
 			}
 			if(amountPlayerHas < amountRequiredForPayment) {
-				opener.sendMessage(EnderBank.notificationString + " You don't have required items!");
+				opener.sendMessage(ViperStringUtils.makeColors(EnderBank.formatString(EnderBank.messages.getString("Attempt_To_Purchase_More_Pages_Without_Item"), opener.getUniqueId())));
+//				opener.sendMessage(EnderBank.notificationString + " You don't have required items!");
 				return;
 			}
 			
 			//Check balance of player if funds also involved
 			if(!econ.has(opener.getName(), BankStorage.getPageCost(unlockedPages + 1))) {
-				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
+				opener.sendMessage(ViperStringUtils.makeColors(EnderBank.formatString(EnderBank.messages.getString("Attempt_To_Purchase_More_Pages_Without_Money"), opener.getUniqueId())));
+//				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
 				return;
 			}
 			
@@ -289,7 +309,8 @@ public class BankStorage {
 		}else {
 			//Check balance of player if funds also involved
 			if(!econ.has(opener.getName(), BankStorage.getPageCost(unlockedPages + 1))) {
-				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
+				opener.sendMessage(ViperStringUtils.makeColors(EnderBank.formatString(EnderBank.messages.getString("Attempt_To_Purchase_More_Pages_Without_Money"), opener.getUniqueId())));
+//				opener.sendMessage(EnderBank.notificationString + " You don't have enough money!");
 				return;
 			}
 			

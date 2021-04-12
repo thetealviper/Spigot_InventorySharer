@@ -1,5 +1,10 @@
 package me.TheTealViper.enderbank;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +49,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 	public static String notificationString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "!" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET
 			, questionString = ChatColor.BOLD + "[" + ChatColor.AQUA + ChatColor.BOLD + "?" + ChatColor.WHITE + ChatColor.BOLD + "]" + ChatColor.RESET;
 	private List<String> disabledWorlds;
-	public static PluginFile pf;
+	public static PluginFile pf, messages;
 	
 	//Chat Queue (for asking which tracker you'd like to add)
 	public static Map<Player, List<String>> chatHandlerQueue = new HashMap<Player, List<String>>();
@@ -69,6 +74,21 @@ public class EnderBank extends JavaPlugin implements Listener {
 		//Load values from config
 		saveDefaultConfig();
 		pf = new PluginFile(this, "config.yml", "f.yml", false);
+		if(!new File("plugins/EnderBank/messages.yml").exists()) {
+			try {
+				InputStream inStream = getResource("messages.yml");
+				File targetFile = new File("plugins/EnderBank/messages.yml");
+			    OutputStream outStream = new FileOutputStream(targetFile);
+			    byte[] buffer = new byte[inStream.available()];
+			    inStream.read(buffer);
+			    outStream.write(buffer);
+			    outStream.close();
+			    inStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		messages = new PluginFile(this, "messages.yml", "f.yml", false);
 		
 		//Set initial values
 		equipmentTypes.add(Material.CHAINMAIL_BOOTS);
@@ -115,6 +135,34 @@ public class EnderBank extends JavaPlugin implements Listener {
         }
 	}
 	
+	public void reloadProcedure() {
+//		Do cleanup in case this is a reload
+			Bukkit.getServer().getScheduler().cancelTasks(this);
+			
+			//Load values from config
+			pf.reload();
+			disabledWorlds = pf.contains("Disabled_Worlds") ? pf.getStringList("Disabled_Worlds") : new ArrayList<String>();
+	        
+			BankStorage.dumpBlacklistedItems.clear();
+	        ConfigurationSection mainSec = pf.getConfigurationSection("Dump_Into_Inventory_Blacklist");
+	        for(String itemIdentifier : mainSec.getKeys(false)) {
+	        	ItemStack item = new LoadItemstackFromConfig().getItem(mainSec.getConfigurationSection(itemIdentifier));
+	        	BankStorage.dumpBlacklistedItems.add(item);
+	        }
+	        
+	        BankStorage.pagePriceItems.clear();
+	        if(pf.getBoolean("Use_Item_For_Page_Price")) {
+	        	for(String pageIdentifier : pf.getConfigurationSection("Page_Price_Items").getKeys(false)) {
+	        		ItemStack item = new LoadItemstackFromConfig().getItem(pf.getConfigurationSection("Page_Price_Items." + pageIdentifier));
+	        		if(pageIdentifier.equalsIgnoreCase("default")) {
+	        			BankStorage.pagePriceItems.put(0, item);
+	        		}else {
+	        			BankStorage.pagePriceItems.put(Integer.valueOf(pageIdentifier), item);
+	        		}
+	        	}
+	        }
+	}
+	
 	public void onDisable() {
 		
 	}
@@ -131,10 +179,14 @@ public class EnderBank extends JavaPlugin implements Listener {
             		warnmissingperms = true;
             	}
             } else if(args.length == 1){
-            	if(p.hasPermission("enderbank.staff")){
-            		explain = true;
-            	}else
-            		warnmissingperms = true;
+            	if(args[0].equalsIgnoreCase("reload")) {
+            		if(p.hasPermission("enderbank.staff")){
+            			p.sendMessage(EnderBank.notificationString + " Reloading...");
+            			reloadProcedure();
+            			p.sendMessage(EnderBank.notificationString + " Successfully reloaded!");
+                	}else
+                		warnmissingperms = true;
+            	}
             }else if(args.length == 2){
             	if(args[0].equalsIgnoreCase("open")){
             		if(p.hasPermission("enderbank.staff")) {
@@ -146,10 +198,12 @@ public class EnderBank extends JavaPlugin implements Listener {
             				BankStorage bank = BankStorage.getBank(oPlayerUUID);
                 			bank.openPage(1, p);
                     		if(!oPlayerOffline.isOnline()){
-                    			p.sendMessage("That player is not online. Opening last save of inventory.");
+                    			p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Of_Offline_Player"), p.getUniqueId())));
+//                    			p.sendMessage("That player is not online. Opening last save of inventory.");
                     		}
             			}else {
-            				p.sendMessage("That bank does not exist yet. The player must sign in at least once.");
+            				p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Player_Hasnt_Made_Yet"), p.getUniqueId())));
+//            				p.sendMessage("That bank does not exist yet. The player must sign in at least once.");
             			}
                 	}else {
                 		warnmissingperms = true;
@@ -164,11 +218,13 @@ public class EnderBank extends JavaPlugin implements Listener {
             	}
             }
             if(warnmissingperms) {
-            	p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are missing permissions!");
+            	p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Missing_Perms"), p.getUniqueId())));
+//            	p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are missing permissions!");
             }
             if(!warnmissingperms && explain){
             	p.sendMessage("EnderBank Commands");
         		p.sendMessage("/enderbank open <name>" + ChatColor.GRAY + " - Opens online player's inventory.");
+        		p.sendMessage("/enderbank reload" + ChatColor.GRAY + " - Reloads configs.");
             }
         }else{
         	//Not a player
@@ -222,7 +278,8 @@ public class EnderBank extends JavaPlugin implements Listener {
 				e.setCancelled(true);
 				
 				if(pf.getBoolean("Disable_Dump_Into_Inventory")) {
-					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
+					e.getWhoClicked().sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Server_Disabled_Dump_Into_Inventory"), e.getWhoClicked().getUniqueId())));
+//					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
 					return;
 				}
 				
@@ -237,7 +294,8 @@ public class EnderBank extends JavaPlugin implements Listener {
 				e.setCancelled(true);
 				
 				if(pf.getBoolean("Disable_Dump_Into_Inventory")) {
-					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
+					e.getWhoClicked().sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Server_Disabled_Dump_Into_Inventory"), e.getWhoClicked().getUniqueId())));
+//					e.getWhoClicked().sendMessage(EnderBank.notificationString + " The server has disabled this feature!");
 					return;
 				}
 				
@@ -275,8 +333,9 @@ public class EnderBank extends JavaPlugin implements Listener {
 				queue.add("banksearch");
 				chatHandlerQueue.put(opener, queue);
 				
-				opener.sendMessage(EnderBank.questionString + " Please search in chat."
-						+ "\nType 'cancel' to cancel.");
+				opener.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Search_In_Chat"), opener.getUniqueId())));
+//				opener.sendMessage(EnderBank.questionString + " Please search in chat."
+//						+ "\nType 'cancel' to cancel.");
 			}else{
 				e.setCancelled(false);
 			}
@@ -337,16 +396,6 @@ public class EnderBank extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent e) {
 		Player p = e.getPlayer();
-		//DEBUG
-		Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {public void run() {
-			Map<Integer, ItemStack> dummy = new HashMap<Integer, ItemStack>(BankStorage.pagePriceItems);
-			for(int pageID : dummy.keySet()) {
-				Bukkit.broadcastMessage(pageID + " : " + BankStorage.pagePriceItems.get(pageID));
-			}
-			p.getWorld().dropItem(p.getLocation(), BankStorage.pagePriceItems.get(2));
-			Bukkit.broadcastMessage(pf.getStringList("Page_Price_Items.Default.lore").get(0));
-		}}, 1);
-		//
 		if(!chatHandlerQueue.containsKey(p))
 			return;
 		List<String> queue = chatHandlerQueue.get(p);
@@ -356,7 +405,8 @@ public class EnderBank extends JavaPlugin implements Listener {
 		if(e.getMessage().equalsIgnoreCase("cancel")) {
 			queue.remove(queue.size() - 1);
 			e.setCancelled(true);
-			p.sendMessage(EnderBank.notificationString + " Cancelled successfully.");
+			p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Search_Cancelled"), p.getUniqueId())));
+//			p.sendMessage(EnderBank.notificationString + " Cancelled successfully.");
 			return;
 		}
 		if(handler.equals("banksearch")) {
@@ -368,10 +418,23 @@ public class EnderBank extends JavaPlugin implements Listener {
 				BankStorage bank = BankStorage.searchDatabase.get(p);
 				bank.openSearch(search, p);
 			}else {
-				p.sendMessage(EnderBank.notificationString + " You must be looking at an ender chest!");
+				p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Not_Looking_At_Ender"), p.getUniqueId())));
+//				p.sendMessage(EnderBank.notificationString + " You must be looking at an ender chest!");
 			}
 			BankStorage.searchDatabase.remove(p);
 		}
+	}
+	
+	//Handles general formatting stuff
+	public static String formatString(String s, UUID uuid) {
+		BankStorage bank = BankStorage.getBank(uuid);
+		while(s.contains("%eb_pagecost%"))
+			s = s.replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + "");
+		while(s.contains("%eb_currentpage%"))
+			s = s.replace("%eb_currentpage%", bank.lastOpenedPage + "");
+		while(s.contains("%eb_playername%"))
+			s = s.replace("%eb_playername%", Bukkit.getPlayer(uuid).getName());
+		return s;
 	}
 	
 }

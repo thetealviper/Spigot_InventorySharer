@@ -32,6 +32,16 @@ Page_Price_Items:
 #If you wish to cap the EnderBank page counts, simply put specific items for all
 #the pages you wish to include, and then make the default item something unobtainable.
 
+Enable_Permission_Mode: false
+#If this is enabled, pages still can be bought like before, however they will now
+#ALSO require permission nodes. The permission node for players to be able to buy
+#pages is: 'enderbank.buypage.#'
+#You must add this permission for EACH page # the player is meant to be able to buy.
+
+Maximum_Pages_Allowed: -1
+#This is the maximum number of pages a player can buy.
+#Set it to -1 for there to be no maximum.
+
 Must_Look_At_Chest_To_Search: true
 #This makes it so players must be looking at an EnderChest
 #to utilize the search feature, resulting in a "never left
@@ -83,6 +93,9 @@ Dump_Into_Inventory_Blacklist:
 #id: DIRT							(Required)
 #amount: 1							(Optional)
 #name: "Dirt"						(Optional)
+#lore:								(Optional)
+# - "Lore line 1"					(Optional)
+# - "Lore line 2"					(Optional)
 #enchantments:						(Optional)
 # - "arrowdamage:1"					(Optional)
 # - "arrowfire:1"					(Optional)
@@ -163,5 +176,5 @@ GUI:
 #                        Version                         #
 ##########################################################
 
-VERSION: 7
+VERSION: 9
 #Do not touch this. No touchy.

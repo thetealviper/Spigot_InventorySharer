@@ -1,7 +1,7 @@
 name: "EnderBank"
 author: TheTealViper
-version: "1.15.2.b.4"
-api-version: 1.13
+version: "1.16.5.a.1"
+api-version: 1.16
 description: "Bank system from popular RPG's."
 main: me.TheTealViper.enderbank.EnderBank
 commands:

@@ -105,8 +105,7 @@ public class CustomItemHandler implements Listener{
 		ItemStack pageCostItem = null;
 		for(int i = 0;i < dummy.size();i++) {
 			String s = dummy.get(i);
-			while(s.contains("%eb_pagecost%"))
-				s = s.replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + "");
+			s = EnderBank.formatString(s, uuid);
 			while(s.contains("%eb_pagecostitemname%")) {
 				if(pageCostItem == null) {
 					if(BankStorage.pagePriceItems.containsKey(bank.unlockedPages + 1)) {
