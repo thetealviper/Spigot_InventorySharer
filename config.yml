@@ -133,6 +133,8 @@ Dump_Into_Inventory_Blacklist:
 #%eb_pagecost% -> Cost of next page
 #%eb_pagecostitemname% -> Name of item required for next page purchase
 #%eb_pagecostitemamount% -> Amount of item required for next page purchase
+#%eb_playername% -> Name of player
+#%eb_currentpage% -> Current page of bank open
 
 GUI:
   Next_Page:
@@ -176,5 +178,5 @@ GUI:
 #                        Version                         #
 ##########################################################
 
-VERSION: 9
+VERSION: 10
 #Do not touch this. No touchy.

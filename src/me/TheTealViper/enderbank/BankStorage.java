@@ -83,6 +83,8 @@ public class BankStorage {
 		//Set other default values
 		pf.set("unlockedPages", 1);
 		pf.save();
+		
+		new BankStorage(p.getUniqueId());
 	}
 	
 	public BankStorage(UUID bankOwnerUUID) {

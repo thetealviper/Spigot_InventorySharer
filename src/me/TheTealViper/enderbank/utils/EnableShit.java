@@ -59,7 +59,7 @@ public class EnableShit {
 		if(update){
 			File file = new File("plugins/" + plugin.getDescription().getName() + "/config.yml");
 			try {
-				com.google.common.io.Files.copy(file, new File("plugins/" + plugin.getDescription().getName() + "/configBACKUP_" + oldVersion + ".yml"));
+				org.apache.commons.io.FileUtils.copyFile(file, new File("plugins/" + plugin.getDescription().getName() + "/configBACKUP_" + oldVersion + ".yml"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

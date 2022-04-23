@@ -16,7 +16,22 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/My Documents/Minecraft Stuff/1.16.5 Plugin Tester/spigot.jar">
+	<classpathentry kind="lib" path="D:/My Documents/Minecraft Stuff/1.18 Plugin Tester/bundler/libraries/spigot-api-1.18.1-R0.1-SNAPSHOT.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/My Documents/Minecraft Stuff/1.18 Plugin Tester/bundler/libraries/commons-io-2.11.0.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/My Documents/Minecraft Stuff/1.18 Plugin Tester/bundler/libraries/gson-2.8.8.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/My Documents/Minecraft Stuff/1.18 Plugin Tester/bundler/libraries/snakeyaml-1.28.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

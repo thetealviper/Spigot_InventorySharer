@@ -382,13 +382,13 @@ public class EnderBank extends JavaPlugin implements Listener {
 		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST) && !disabledWorlds.contains(e.getPlayer().getWorld().getName())) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
-			if(!BankStorage.hasBank(p.getUniqueId()))
-				BankStorage.initiateBank(p);
 			openEnderBank(p);
 		}
 	}
 	
 	public void openEnderBank(Player p) {
+		if(!BankStorage.hasBank(p.getUniqueId()))
+			BankStorage.initiateBank(p);
 		BankStorage bank = BankStorage.getBank(p.getUniqueId());
 		bank.openPage(1, p);
 	}
