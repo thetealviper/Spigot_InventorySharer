@@ -1,8 +1,6 @@
-name: "EnderBank"
+name: "InventorySharer"
 author: TheTealViper
-version: "1.18.1.a.2"
+version: "1.18.1.a.1"
 api-version: 1.18
-description: "Bank system from popular RPG's."
-main: me.TheTealViper.enderbank.EnderBank
-commands:
-  enderbank:
+description: "Allow players to share their inventories in a clickable chat message"
+main: me.TheTealViper.inventorysharer.InventorySharer
