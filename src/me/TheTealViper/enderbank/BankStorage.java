@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -63,7 +64,7 @@ public class BankStorage {
 	//This method REQUIRES the player to be online to initialize their bank.
 	//This should be run the first time the player tries opening their ender inv
 	//and the enderbank is created.
-	public static void initiateBank(Player p) {
+	public static void initiateBank(OfflinePlayer p) {
 		PluginFile pf = new PluginFile(plugin, "banks/banks." + p.getUniqueId().toString() + ".yml", true);
 		
 		//Set default items
@@ -71,12 +72,17 @@ public class BankStorage {
 			pf.set("inventory." + i, new ItemStack(Material.AIR));
 		}
 		
-		//Carry over vanilla ender items
-		int index = 0;
-		for(ItemStack i : p.getEnderChest().getContents()) {
-			if(i != null && !i.getType().equals(Material.AIR)) {
-				pf.set("inventory." + index, i);
-				index++;
+		//Carry over vanilla ender items.
+		//ONLY WORKS IF PLAYER IS ONLINE AT TIME OF BANK INITIALIZATION.
+		//First initialization should only be possible by the player themselves
+		//but just listing in case.
+		if(p.isOnline()) {
+			int index = 0;
+			for(ItemStack i : p.getPlayer().getEnderChest().getContents()) {
+				if(i != null && !i.getType().equals(Material.AIR)) {
+					pf.set("inventory." + index, i);
+					index++;
+				}
 			}
 		}
 		

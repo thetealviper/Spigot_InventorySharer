@@ -195,15 +195,19 @@ public class EnderBank extends JavaPlugin implements Listener {
 						OfflinePlayer oPlayerOffline = Bukkit.getOfflinePlayer(oPlayerName);
             			UUID oPlayerUUID = oPlayerOffline.getUniqueId();
             			if(BankStorage.hasBank(oPlayerUUID)) {
-            				BankStorage bank = BankStorage.getBank(oPlayerUUID);
-                			bank.openPage(1, p);
+            				openEnderBank(p, oPlayerOffline);
                     		if(!oPlayerOffline.isOnline()){
                     			p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Of_Offline_Player"), p.getUniqueId())));
 //                    			p.sendMessage("That player is not online. Opening last save of inventory.");
                     		}
             			}else {
-            				p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Player_Hasnt_Made_Yet"), p.getUniqueId())));
-//            				p.sendMessage("That bank does not exist yet. The player must sign in at least once.");
+            				if(p.getUniqueId().equals(oPlayerUUID)) {
+            					//If player is attempting to open their own ender bank for the very first time via command
+            					openEnderBank(p, p);
+            				}else {
+            					p.sendMessage(ViperStringUtils.makeColors(formatString(messages.getString("Open_Inventory_Player_Hasnt_Made_Yet"), p.getUniqueId())));
+//                				p.sendMessage("That bank does not exist yet. The player must sign in at least once.");
+            				}
             			}
                 	}else {
                 		warnmissingperms = true;
@@ -373,7 +377,7 @@ public class EnderBank extends JavaPlugin implements Listener {
 		if(e.getInventory().getType().equals(InventoryType.ENDER_CHEST) && !disabledWorlds.contains(e.getPlayer().getWorld().getName())) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
-			openEnderBank(p);
+			openEnderBank(p, p);
 		}
 	}
 	
@@ -382,15 +386,15 @@ public class EnderBank extends JavaPlugin implements Listener {
 		if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getType().equals(Material.ENDER_CHEST) && !disabledWorlds.contains(e.getPlayer().getWorld().getName())) {
 			e.setCancelled(true);
 			Player p = (Player) e.getPlayer();
-			openEnderBank(p);
+			openEnderBank(p, p);
 		}
 	}
 	
-	public void openEnderBank(Player p) {
-		if(!BankStorage.hasBank(p.getUniqueId()))
-			BankStorage.initiateBank(p);
-		BankStorage bank = BankStorage.getBank(p.getUniqueId());
-		bank.openPage(1, p);
+	public void openEnderBank(Player pOpener, OfflinePlayer pBankOwner) {
+		if(!BankStorage.hasBank(pBankOwner.getUniqueId()))
+			BankStorage.initiateBank(pBankOwner);
+		BankStorage bank = BankStorage.getBank(pBankOwner.getUniqueId());
+		bank.openPage(1, pOpener);
 	}
 	
 	@EventHandler
@@ -427,13 +431,17 @@ public class EnderBank extends JavaPlugin implements Listener {
 	
 	//Handles general formatting stuff
 	public static String formatString(String s, UUID uuid) {
-		BankStorage bank = BankStorage.getBank(uuid);
-		while(s.contains("%eb_pagecost%"))
-			s = s.replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + "");
-		while(s.contains("%eb_currentpage%"))
-			s = s.replace("%eb_currentpage%", bank.lastOpenedPage + "");
 		while(s.contains("%eb_playername%"))
 			s = s.replace("%eb_playername%", Bukkit.getPlayer(uuid).getName());
+		
+		if(BankStorage.hasBank(uuid)) {
+			BankStorage bank = BankStorage.getBank(uuid);
+			while(s.contains("%eb_pagecost%"))
+				s = s.replace("%eb_pagecost%", BankStorage.getPageCost(bank.unlockedPages + 1) + "");
+			while(s.contains("%eb_currentpage%"))
+				s = s.replace("%eb_currentpage%", bank.lastOpenedPage + "");
+		}
+		
 		return s;
 	}
 	
